@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>בונה סימולציות הוראה</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Rubik:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">דילוג לתוכן</a>
+
+  <!-- מסך כניסה -->
+  <div id="gate" class="gate">
+    <form id="gate-form" class="gate-card" autocomplete="off">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <h1>בונה סימולציות הוראה</h1>
+      <p>מורה מנהל/ת שיח עם תלמידים וירטואליים. כאן בונים את הפרומפטים.</p>
+      <label for="gate-pass">סיסמה</label>
+      <input id="gate-pass" type="password" inputmode="numeric" required aria-describedby="gate-err">
+      <p id="gate-err" class="field-error" role="alert"></p>
+      <button class="btn btn-primary" type="submit">כניסה</button>
+    </form>
+  </div>
+
+  <div id="app" hidden>
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="logo" href="#build" data-view="build">
+          <span class="brand-mark sm" aria-hidden="true"></span>
+          <span>בונה סימולציות הוראה</span>
+        </a>
+        <nav aria-label="ניווט ראשי" class="main-nav">
+          <a href="#build" data-view="build">בנייה</a>
+          <a href="#saved" data-view="saved">תרגילים שנשמרו</a>
+          <a href="#fixed" data-view="fixed">הפרומפטים הקבועים</a>
+        </nav>
+        <div class="a11y">
+          <button type="button" class="btn btn-ghost" id="a11y-toggle" aria-expanded="false" aria-controls="a11y-panel">נגישות</button>
+          <div id="a11y-panel" class="a11y-panel" hidden>
+            <p class="a11y-title">התאמות תצוגה</p>
+            <div class="a11y-row">
+              <button type="button" class="btn btn-ghost" data-a11y="smaller" aria-label="הקטנת טקסט">א−</button>
+              <button type="button" class="btn btn-ghost" data-a11y="reset">רגיל</button>
+              <button type="button" class="btn btn-ghost" data-a11y="bigger" aria-label="הגדלת טקסט">א+</button>
+            </div>
+            <label class="check"><input type="checkbox" data-a11y="contrast"> ניגודיות גבוהה</label>
+            <label class="check"><input type="checkbox" data-a11y="links"> הדגשת קישורים</label>
+            <label class="check"><input type="checkbox" data-a11y="motion"> עצירת אנימציות</label>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <!-- ===================== בנייה ===================== -->
+      <section id="view-build" class="view">
+        <div class="hero">
+          <div class="wrap">
+            <p class="eyebrow">MRT · הוראה רספונסיבית מתמטית</p>
+            <h1>בניית סימולציה</h1>
+            <p class="lead">ארבעה שלבים של מילוי, ובסוף: פרומפטים מוכנים להעתקה למערכת. החלקים הקבועים זהים בכל סימולציה. משתנה רק התרגיל, התלמידים והטעויות שלהם.</p>
+          </div>
+        </div>
+
+        <div class="wrap build-layout">
+          <ol class="stepper" aria-label="שלבי הבנייה">
+            <li><button type="button" data-step="1" aria-current="step"><span class="num">1</span><span>הגדרות</span></button></li>
+            <li><button type="button" data-step="2"><span class="num">2</span><span>התרגיל</span></button></li>
+            <li><button type="button" data-step="3"><span class="num">3</span><span>שלבי השיעור</span></button></li>
+            <li><button type="button" data-step="4"><span class="num">4</span><span>התלמידים</span></button></li>
+            <li><button type="button" data-step="5"><span class="num">5</span><span>פרומפטים מוכנים</span></button></li>
+          </ol>
+
+          <div class="steps">
+            <!-- שלב 1 -->
+            <section class="step" data-step-panel="1" aria-labelledby="h-step1">
+              <h2 id="h-step1">1. הגדרות השיעור</h2>
+
+              <fieldset class="field">
+                <legend>מעבר בין שלבי השיעור</legend>
+                <div class="choice-grid">
+                  <label class="choice">
+                    <input type="radio" name="mode" value="manual" data-path="settings.mode">
+                    <span class="choice-body">
+                      <strong>ידני: המורה מעביר/ה</strong>
+                      <span>המורה כותב/ת <code>[מעבר לשלב 2]</code>. המנחה יכול להציע לעבור או להישאר.<br>תוויות: WAIT, MENTOR, SUGGEST_ADVANCE, SUGGEST_HOLD</span>
+                    </span>
+                  </label>
+                  <label class="choice">
+                    <input type="radio" name="mode" value="auto" data-path="settings.mode">
+                    <span class="choice-body">
+                      <strong>אוטומטי: מנהל השיח מעביר</strong>
+                      <span>מנהל השיח מחליט מתי השלב הושלם.<br>תוויות: MENTOR, NEXT_PART</span>
+                    </span>
+                  </label>
+                </div>
+              </fieldset>
+
+              <fieldset class="field">
+                <legend>לשון פנייה למורה</legend>
+                <div class="seg">
+                  <label><input type="radio" name="teacher" value="f" data-path="settings.teacher"><span>נקבה</span></label>
+                  <label><input type="radio" name="teacher" value="m" data-path="settings.teacher"><span>זכר</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="field">
+                <legend>מספר תלמידים בשיעור</legend>
+                <div class="seg">
+                  <label><input type="radio" name="count" value="1" data-path="settings.count" data-num><span>1</span></label>
+                  <label><input type="radio" name="count" value="2" data-path="settings.count" data-num><span>2</span></label>
+                  <label><input type="radio" name="count" value="3" data-path="settings.count" data-num><span>3</span></label>
+                  <label><input type="radio" name="count" value="4" data-path="settings.count" data-num><span>4</span></label>
+                  <label><input type="radio" name="count" value="5" data-path="settings.count" data-num><span>5</span></label>
+                </div>
+                <p class="hint">לכל תלמיד/ה ייווצר פרומפט דמות נפרד.</p>
+              </fieldset>
+
+              <details class="peek" data-peek="orchestrator">
+                <summary>הצגת הפרומפט הקבוע: מנהל השיח</summary>
+                <div class="peek-legend"><mark class="var">מסומן</mark> = חלק שמשתנה לפי מה שממלאים</div>
+                <pre class="prompt-view" tabindex="0"></pre>
+              </details>
+
+              <div class="step-nav"><span></span><button type="button" class="btn btn-primary" data-go="2">הבא: התרגיל</button></div>
+            </section>
+
+            <!-- שלב 2 -->
+            <section class="step" data-step-panel="2" aria-labelledby="h-step2" hidden>
+              <h2 id="h-step2">2. התרגיל</h2>
+              <p class="step-intro">מה שהתלמידים יודעים ורואים, ומה שרק המנחה יודע. שדות עם * נדרשים.</p>
+
+              <div class="grid-2">
+                <div class="field">
+                  <label for="ex-title">שם התרגיל *</label>
+                  <input id="ex-title" type="text" data-path="exercise.title" placeholder="למשל: הפקעה ופיצוי 1, סעיף 3">
+                </div>
+                <div class="field">
+                  <label for="ex-grade">כיתה ורמה *</label>
+                  <input id="ex-grade" type="text" data-path="exercise.grade" placeholder="למשל: כיתה ט׳, הקבצה א׳">
+                </div>
+              </div>
+
+              <h3 class="group-title">מה התלמידים יודעים ורואים</h3>
+              <div class="field">
+                <label for="ex-learned">מה כבר למדו *</label>
+                <textarea id="ex-learned" rows="4" data-path="exercise.learned" aria-describedby="h-learned" placeholder="שורה לכל דבר. למשל: סעיף 2: חלקה של 110 על 40…"></textarea>
+                <p class="hint" id="h-learned">כולל סעיפים קודמים באותה יחידה. שורה לכל פריט.</p>
+              </div>
+              <div class="field">
+                <label for="ex-task">טקסט המשימה *</label>
+                <textarea id="ex-task" rows="7" data-path="exercise.task" placeholder="המשימה כפי שהתלמידים רואים אותה, כולל השאלה."></textarea>
+              </div>
+              <div class="field">
+                <label for="ex-figure">שרטוט או ייצוג</label>
+                <textarea id="ex-figure" rows="2" data-path="exercise.figure" aria-describedby="h-figure" placeholder="למשל: חלקה 110 על 40. למטה החלק שלוקחים, ולידו 65 מ׳…"></textarea>
+                <p class="hint" id="h-figure">תיאור במילים של מה שרואים, כולל מה שלא כתוב.</p>
+              </div>
+              <div class="field">
+                <label for="ex-notyet">דרכים שעוד לא נלמדו</label>
+                <textarea id="ex-notyet" rows="3" data-path="exercise.notYet" aria-describedby="h-notyet" placeholder="טבלה / בדיקת הרבה מספרים — סעיף 4&#10;משוואה — סעיף 5"></textarea>
+                <p class="hint" id="h-notyet">שורה לכל דרך. התלמידים לא יציעו אותן, ויגיבו אם המורה יציע/תציע.</p>
+              </div>
+
+              <h3 class="group-title">רק למנחה ולמנהל השיח</h3>
+              <div class="field">
+                <label for="ex-idea">הרעיון המתמטי המרכזי *</label>
+                <textarea id="ex-idea" rows="2" data-path="exercise.centralIdea" placeholder="למשל: מקרה אחד מספיק כדי להפריך טענה כללית, אבל לא כדי להוכיח אותה."></textarea>
+              </div>
+              <div class="field">
+                <label for="ex-solution">הפתרון *</label>
+                <textarea id="ex-solution" rows="5" data-path="exercise.solution" placeholder="שורה לכל נקודה בפתרון."></textarea>
+              </div>
+              <div class="field">
+                <label for="ex-pitfalls">טעויות נפוצות של מורים בתרגיל הזה</label>
+                <textarea id="ex-pitfalls" rows="3" data-path="exercise.pitfalls" aria-describedby="h-pitfalls" placeholder="למשל: אומרים 'הצלע 45' במקום לשאול על השרטוט."></textarea>
+                <p class="hint" id="h-pitfalls">לא חובה. מוסיף למנחה רגישות לתרגיל, מעבר לרשימה הקבועה.</p>
+              </div>
+
+              <details class="peek" data-peek="shared">
+                <summary>הצגת הפרומפט הקבוע: הנחיות משותפות לכל התלמידים</summary>
+                <div class="peek-legend"><mark class="var">מסומן</mark> = חלק שמשתנה לפי מה שממלאים</div>
+                <pre class="prompt-view" tabindex="0"></pre>
+              </details>
+
+              <div class="step-nav"><button type="button" class="btn btn-ghost" data-go="1">הקודם</button><button type="button" class="btn btn-primary" data-go="3">הבא: שלבי השיעור</button></div>
+            </section>
+
+            <!-- שלב 3 -->
+            <section class="step" data-step-panel="3" aria-labelledby="h-step3" hidden>
+              <h2 id="h-step3">3. שלבי השיעור</h2>
+              <p class="step-intro">לכל שלב: שם, ויעד. היעד הוא מה שהתלמיד/ה אומר/ת <strong>בעצמו/ה</strong> בסוף השלב. לפיו מנהל השיח מחליט, והמנחה יודע מה עוד חסר.</p>
+              <div id="stages-list" class="stages-list"></div>
+              <button type="button" class="btn btn-ghost" id="add-stage">+ הוספת שלב</button>
+
+              <details class="peek" data-peek="mentor">
+                <summary>הצגת הפרומפט הקבוע: המנחה</summary>
+                <div class="peek-legend"><mark class="var">מסומן</mark> = חלק שמשתנה לפי מה שממלאים</div>
+                <pre class="prompt-view" tabindex="0"></pre>
+              </details>
+
+              <div class="step-nav"><button type="button" class="btn btn-ghost" data-go="2">הקודם</button><button type="button" class="btn btn-primary" data-go="4">הבא: התלמידים</button></div>
+            </section>
+
+            <!-- שלב 4 -->
+            <section class="step" data-step-panel="4" aria-labelledby="h-step4" hidden>
+              <h2 id="h-step4">4. התלמידים</h2>
+              <p class="step-intro">בוחרים אישיות מהמאגר או בונים לבד. לכל דמות יש שם קבוע שאפשר לשנות. אחר כך כותבים את הטעות, או מבקשים הצעה מ־AI.</p>
+              <div id="students"></div>
+
+              <details class="peek" data-peek="character">
+                <summary>הצגת הפרומפט הקבוע: פרומפט הדמות (התלמיד/ה הראשון/ה)</summary>
+                <div class="peek-legend"><mark class="var">מסומן</mark> = חלק שמשתנה לפי מה שממלאים</div>
+                <pre class="prompt-view" tabindex="0"></pre>
+              </details>
+
+              <div class="step-nav"><button type="button" class="btn btn-ghost" data-go="3">הקודם</button><button type="button" class="btn btn-primary" data-go="5">לפרומפטים המוכנים</button></div>
+            </section>
+
+            <!-- שלב 5 -->
+            <section class="step" data-step-panel="5" aria-labelledby="h-step5" hidden>
+              <h2 id="h-step5">5. פרומפטים מוכנים</h2>
+              <div id="missing" class="notice" hidden></div>
+              <div class="out-toolbar">
+                <label class="check"><input type="checkbox" id="mark-vars" checked> סימון החלקים שמשתנים</label>
+              </div>
+              <div id="outputs"></div>
+
+              <div class="save-box">
+                <h3>לשמור את התרגיל?</h3>
+                <p id="save-scope" class="hint"></p>
+                <button type="button" class="btn btn-primary" id="open-save">שמירה בתרגילים</button>
+                <button type="button" class="btn btn-ghost" id="reset-form">התחלת סימולציה חדשה</button>
+              </div>
+
+              <div class="step-nav"><button type="button" class="btn btn-ghost" data-go="4">הקודם</button><span></span></div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== תרגילים שנשמרו ===================== -->
+      <section id="view-saved" class="view" hidden>
+        <div class="hero"><div class="wrap">
+          <h1>תרגילים שנשמרו</h1>
+          <p class="lead">פותחים תרגיל שמור, משנים מה שצריך, ומקבלים פרומפטים מוכנים.</p>
+        </div></div>
+        <div class="wrap">
+          <div class="field search">
+            <label for="saved-search">חיפוש לפי שם תרגיל, דמות או מי ששמר/ה</label>
+            <input id="saved-search" type="search">
+          </div>
+          <p id="saved-status" class="hint" role="status"></p>
+          <div id="saved-list" class="saved-list"></div>
+        </div>
+      </section>
+
+      <!-- ===================== הפרומפטים הקבועים ===================== -->
+      <section id="view-fixed" class="view" hidden>
+        <div class="hero"><div class="wrap">
+          <h1>הפרומפטים הקבועים</h1>
+          <p class="lead">המבנה הקבוע של כל ארבעת הפרומפטים. החלקים המסומנים מתמלאים מהטופס.</p>
+        </div></div>
+        <div class="wrap">
+          <div class="seg" role="group" aria-label="מצב מעבר שלבים לתצוגה">
+            <label><input type="radio" name="fixed-mode" value="manual" checked><span>מעבר ידני</span></label>
+            <label><input type="radio" name="fixed-mode" value="auto"><span>מעבר אוטומטי</span></label>
+          </div>
+          <div id="fixed-list"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer"><div class="wrap">
+      <p>כלי פנימי לבניית סימולציות הוראה · מבוסס על עקרונות הוראה רספונסיבית מתמטית (MRT)</p>
+    </div></footer>
+  </div>
+
+  <!-- דיאלוג: הצעת טעות -->
+  <dialog id="dlg-error" aria-labelledby="dlg-error-title">
+    <form method="dialog" class="dlg">
+      <h2 id="dlg-error-title">הצעת טעות מ־AI</h2>
+      <ol class="how">
+        <li>מעתיקים את פרומפט העזר ומדביקים בשיחה חדשה עם Claude.</li>
+        <li>בוחרים הצעה אחת, ומעתיקים את מה שמתחת ל"להדבקה".</li>
+        <li>מדביקים כאן ולוחצים "הכנסה לטעות". אפשר לערוך גם אחר כך.</li>
+      </ol>
+      <div class="copy-head"><strong>פרומפט העזר</strong><button type="button" class="btn btn-ghost" id="copy-helper">העתקה</button></div>
+      <pre id="helper-text" class="prompt-view small" tabindex="0"></pre>
+      <label for="helper-paste">הטעות שנבחרה</label>
+      <textarea id="helper-paste" rows="5"></textarea>
+      <div class="dlg-actions">
+        <button type="button" class="btn btn-primary" id="helper-apply">הכנסה לטעות</button>
+        <button value="cancel" class="btn btn-ghost">סגירה</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- דיאלוג: שמירה -->
+  <dialog id="dlg-save" aria-labelledby="dlg-save-title">
+    <form method="dialog" class="dlg" id="save-form">
+      <h2 id="dlg-save-title">שמירת התרגיל</h2>
+      <p id="save-note" class="hint"></p>
+      <label for="save-name">שם התרגיל בשמירה</label>
+      <input id="save-name" type="text" required>
+      <label for="save-author">מי מילא/ה ושמר/ה</label>
+      <input id="save-author" type="text" required autocomplete="name">
+      <p id="save-err" class="field-error" role="alert"></p>
+      <div class="dlg-actions">
+        <button type="submit" value="save" class="btn btn-primary" id="save-submit">שמירה</button>
+        <button type="button" value="cancel" class="btn btn-ghost" id="save-cancel">ביטול</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/personas.js"></script>
+  <script src="js/prompts.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
