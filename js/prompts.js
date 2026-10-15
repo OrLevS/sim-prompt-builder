@@ -187,16 +187,18 @@
     L.push('התיאור כתוב בגוף שלישי, אבל זה ' + G('את', 'אתה') + '.', '');
 
     L.push('## חלק 1: מי ' + G('את', 'אתה'), '');
+    // בקבצים להורדה: תיאור דמות מהמאגר מוצג כטקסט רגיל ולא כחלק משתנה
+    const PV = (v, l) => (ctx.plainPersona && has(v) ? String(v).trim() : V(v, l));
     const sec = (title, val, label, asList) => {
       L.push('### ' + title);
-      L.push(V(asList ? bullets(val) : val, label), '');
+      L.push(PV(asList ? bullets(val) : val, label), '');
     };
     sec('בשיעור', p.inClass, 'בשיעור');
     sec(G('טובה ב', 'טוב ב'), p.goodAt, 'טוב/ה ב');
     sec(G('קשה לה', 'קשה לו'), p.hardFor, 'קשה לו/ה', true);
     sec(G('איך היא חושבת', 'איך הוא חושב'), p.thinking, 'איך חושב/ת');
     L.push('### תגובות למורה');
-    L.push(has(p.reactions) ? V(reactionsTable(p.reactions, name || 'הדמות'), 'תגובות למורה') : V('', 'תגובות למורה'), '');
+    L.push(has(p.reactions) ? PV(reactionsTable(p.reactions, name || 'הדמות'), 'תגובות למורה') : V('', 'תגובות למורה'), '');
     sec(G('לא עושה', 'לא עושה'), p.doesnt, 'לא עושה');
     sec('דיבור', p.speech, 'דיבור');
     L.push('- רק מילים: בלי שם בהתחלה ובלי תיאורים בסוגריים.', '');
