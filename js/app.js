@@ -404,7 +404,7 @@
   // ---------------------------------------------------------------- outputs
   const REQUIRED = [
     ['exercise.title', 'שם התרגיל'], ['exercise.grade', 'כיתה ורמה'], ['exercise.learned', 'מה כבר למדו'],
-    ['exercise.task', 'טקסט המשימה'], ['exercise.centralIdea', 'הרעיון המתמטי המרכזי'], ['exercise.solution', 'הפתרון']
+    ['exercise.task', 'טקסט המשימה']
   ];
   function missingList() {
     const miss = REQUIRED.filter(([p]) => !String(getPath(state, p) || '').trim()).map(([, l]) => l);

@@ -87,7 +87,7 @@
                     <input type="radio" name="mode" value="manual" data-path="settings.mode">
                     <span class="choice-body">
                       <strong>ידני: המורה מעביר/ה</strong>
-                      <span>המורה כותב/ת <code>[מעבר לשלב 2]</code>. המנחה יכול להציע לעבור או להישאר.<br>תוויות: WAIT, MENTOR, SUGGEST_ADVANCE, SUGGEST_HOLD</span>
+                      <span>המורה כותב/ת <code>[מעבר לשלב 2]</code>. <br>תוויות: WAIT, MENTOR</span>
                     </span>
                   </label>
                   <label class="choice">
@@ -166,19 +166,15 @@
                 <p class="hint" id="h-notyet">שורה לכל דרך. התלמידים לא יציעו אותן, ויגיבו אם המורה יציע/תציע.</p>
               </div>
 
-              <h3 class="group-title">רק למנחה ולמנהל השיח</h3>
+              <h3 class="group-title">רקע לבינה המלאכותית (התלמידים לא רואים)</h3>
+              <p class="hint">משמש להצעת טעות מ־AI, ובמעבר שלבים אוטומטי גם למנהל השיח כדי לשפוט אם יעד הושג.</p>
               <div class="field">
-                <label for="ex-idea">הרעיון המתמטי המרכזי *</label>
+                <label for="ex-idea">הרעיון המתמטי המרכזי</label>
                 <textarea id="ex-idea" rows="2" data-path="exercise.centralIdea" placeholder="למשל: מקרה אחד מספיק כדי להפריך טענה כללית, אבל לא כדי להוכיח אותה."></textarea>
               </div>
               <div class="field">
-                <label for="ex-solution">הפתרון *</label>
+                <label for="ex-solution">הפתרון</label>
                 <textarea id="ex-solution" rows="5" data-path="exercise.solution" placeholder="שורה לכל נקודה בפתרון."></textarea>
-              </div>
-              <div class="field">
-                <label for="ex-pitfalls">טעויות נפוצות של מורים בתרגיל הזה</label>
-                <textarea id="ex-pitfalls" rows="3" data-path="exercise.pitfalls" aria-describedby="h-pitfalls" placeholder="למשל: אומרים 'הצלע 45' במקום לשאול על השרטוט."></textarea>
-                <p class="hint" id="h-pitfalls">לא חובה. מוסיף למנחה רגישות לתרגיל, מעבר לרשימה הקבועה.</p>
               </div>
 
               <details class="peek" data-peek="shared">
@@ -198,7 +194,7 @@
               <button type="button" class="btn btn-ghost" id="add-stage">+ הוספת שלב</button>
 
               <details class="peek" data-peek="mentor">
-                <summary>הצגת הפרומפט הקבוע: המנחה</summary>
+                <summary>הצגת הפרומפט הקבוע: המנחה (שומר/ת על המסגרת)</summary>
                 <div class="peek-legend"><mark class="var">מסומן</mark> = חלק שמשתנה לפי מה שממלאים</div>
                 <pre class="prompt-view" tabindex="0"></pre>
               </details>
