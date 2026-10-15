@@ -62,6 +62,22 @@ def _split_by_script(text):
     return [(s, r) for s, r in out if s]
 
 
+_LTR_ISLAND = re.compile(r'[A-Za-z0-9](?:[^֐-׿\n]*[A-Za-z0-9])?')
+
+
+def _ltr_islands(text):
+    """מחלק לריצות: רצפים של אנגלית/מספרים (כולל מה שביניהם, בלי עברית) הם LTR; כל השאר RTL."""
+    out, pos = [], 0
+    for m in _LTR_ISLAND.finditer(text):
+        if m.start() > pos:
+            out.append((text[pos:m.start()], True))
+        out.append((m.group(0), False))
+        pos = m.end()
+    if pos < len(text):
+        out.append((text[pos:], True))
+    return out
+
+
 def _para_is_rtl(text):
     if _HEB.search(text):
         return True
@@ -94,24 +110,17 @@ def parse_marked(line, default_kind=None):
     return res
 
 
-def add_par(doc, parts, size=11, bold=False, space_after=2, color=None):
-    """parts: [(text, kind)] — kind None/'fill'/'adjust'/'group'."""
-    full = ''.join(t for t, _ in parts)
-    p = doc.add_paragraph()
-    pPr = p._p.get_or_add_pPr()
-    rtl_base = _para_is_rtl(full)
-    if rtl_base:
-        pPr.append(pPr.makeelement(qn('w:bidi'), {}))
-    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT if rtl_base else WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_after = Pt(space_after)
-    p.paragraph_format.space_before = Pt(0)
+def _fill_runs(p, parts, size=11, bold=False, color=None):
+    """parts: [(text, kind)] או [(text, kind, bold)]. kind: None/'fill'/'adjust'/'group'."""
+    parts = [(x[0], x[1], x[2] if len(x) > 2 else False) for x in parts]
+    full = ''.join(t for t, _, _ in parts)
     has_latin = any(ch.isascii() and ch.isalpha() for ch in full)
-    for text, kind in parts:
-        for seg, is_rtl in _split_by_script(text):
+    for text, kind, pbold in parts:
+        for seg, is_rtl in _ltr_islands(text):
             run = p.add_run(seg)
             rPr = run._r.get_or_add_rPr()
             rPr.append(rPr.makeelement(qn('w:rFonts'), {qn('w:ascii'): FONT, qn('w:hAnsi'): FONT, qn('w:cs'): FONT}))
-            if bold:
+            if bold or pbold:
                 rPr.append(rPr.makeelement(qn('w:b'), {}))
                 rPr.append(rPr.makeelement(qn('w:bCs'), {}))
             if color:
@@ -120,8 +129,25 @@ def add_par(doc, parts, size=11, bold=False, space_after=2, color=None):
             rPr.append(rPr.makeelement(qn('w:szCs'), {qn('w:val'): str(int(size * 2))}))
             if kind in COLORS:
                 rPr.append(rPr.makeelement(qn('w:shd'), {qn('w:val'): 'clear', qn('w:color'): 'auto', qn('w:fill'): COLORS[kind]}))
-            if is_rtl and not has_latin:
+            # עברית וסימני פיסוק: <w:rtl/>. רצף אנגלית/מספרים: ריצה נפרדת בלי הסימון, כדי ש-Word לא יהפוך אותו.
+            if is_rtl:
                 rPr.append(rPr.makeelement(qn('w:rtl'), {}))
+
+
+def _rtl_para(p):
+    # <w:bidi/> בלי יישור מפורש: פסקה מימין לשמאל מתחילה מימין.
+    # (יישור "ימין" ב-Word על פסקה כזאת דווקא דוחף אותה שמאלה.)
+    pPr = p._p.get_or_add_pPr()
+    pPr.append(pPr.makeelement(qn('w:bidi'), {}))
+
+
+def add_par(doc, parts, size=11, bold=False, space_after=4, color=None, space_before=0):
+    p = doc.add_paragraph()
+    _rtl_para(p)
+    p.paragraph_format.space_after = Pt(space_after)
+    p.paragraph_format.space_before = Pt(space_before)
+    p.paragraph_format.line_spacing = 1.2
+    _fill_runs(p, parts, size=size, bold=bold, color=color)
     return p
 
 
@@ -153,18 +179,85 @@ def legend(doc):
                   (' ירוק ', 'group'), (' = מוסיפים רק כשיש יותר מתלמיד/ה אחד/ת.', None)], size=10, space_after=6)
 
 
+def md_parts(line, default_kind=None):
+    """שורה עם סימוני משתנים ו-**מודגש** לרשימת (טקסט, סוג, מודגש)."""
+    out = []
+    bold = False
+    for text, kind in parse_marked(line, default_kind):
+        chunks = text.split('**')
+        for i, c in enumerate(chunks):
+            if i > 0:
+                bold = not bold
+            if c:
+                out.append((c, kind, bold))
+    return out
+
+
+def add_table(doc, rows, default_kind=None):
+    from docx.enum.table import WD_TABLE_DIRECTION, WD_TABLE_ALIGNMENT
+    ncol = max(len(r) for r in rows)
+    t = doc.add_table(rows=len(rows), cols=ncol)
+    t.style = 'Table Grid'
+    t.table_direction = WD_TABLE_DIRECTION.RTL
+    t.alignment = WD_TABLE_ALIGNMENT.RIGHT
+    for i, r in enumerate(rows):
+        for j in range(ncol):
+            cell = t.rows[i].cells[j]
+            p = cell.paragraphs[0]
+            _rtl_para(p)
+            p.paragraph_format.space_after = Pt(2)
+            txt = r[j] if j < len(r) else ''
+            _fill_runs(p, md_parts(txt, default_kind), size=10.5, bold=(i == 0))
+            if i == 0:
+                tcPr = cell._tc.get_or_add_tcPr()
+                tcPr.append(tcPr.makeelement(qn('w:shd'), {qn('w:val'): 'clear', qn('w:color'): 'auto', qn('w:fill'): 'E8F2FB'}))
+    doc.add_paragraph().paragraph_format.space_after = Pt(2)
+
+
+def _cells(line):
+    s = line.strip()
+    if s.startswith('|'):
+        s = s[1:]
+    if s.endswith('|'):
+        s = s[:-1]
+    return [c.strip() for c in s.split('|')]
+
+
 def write_prompt(doc, text, default_kind=None):
-    for line in text.split('\n'):
-        plain = line.replace(S0, '').replace(S1, '')
-        size, bold = 11, False
-        if plain.startswith('# '):
-            size, bold = 15, True
-        elif plain.startswith('## '):
-            size, bold = 13, True
-        elif plain.startswith('### '):
-            size, bold = 11.5, True
-        parts = parse_marked(line, default_kind) if line else [('', None)]
-        add_par(doc, parts, size=size, bold=bold, space_after=(6 if bold else 1))
+    """מציג את הפרומפט כמסמך קריא: כותרות, טבלאות ותבליטים במקום סימני Markdown."""
+    lines = text.split('\n')
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        plain = line.replace(S0, '').replace(S1, '').strip()
+        if plain.startswith('|'):
+            rows = []
+            while i < len(lines) and lines[i].replace(S0, '').replace(S1, '').strip().startswith('|'):
+                raw = lines[i]
+                if not re.fullmatch(r'[|\-\s:]+', raw.replace(S0, '').replace(S1, '').strip()):
+                    rows.append(_cells(raw))
+                i += 1
+            add_table(doc, rows, default_kind)
+            continue
+        i += 1
+        if not plain:
+            continue
+        m = re.match(r'^(#{1,3}) ', plain)
+        if m:
+            level = len(m.group(1))
+            body = re.sub(r'^(?)#{1,3} ', r'\1', line.lstrip())
+            size = {1: 16, 2: 13.5, 3: 12}[level]
+            color = {1: '0B2545', 2: '1D5FA8', 3: '0B2545'}[level]
+            add_par(doc, md_parts(body, default_kind), size=size, bold=True, color=color,
+                    space_before=(10 if level < 3 else 6), space_after=3)
+            continue
+        stripped = line.lstrip()
+        indent = len(line) - len(stripped)
+        if re.match(r'^()?- ', stripped):
+            body = re.sub(r'^(?)- ', r'\1', stripped)
+            add_par(doc, [('    ' * (indent // 3) + '•  ', default_kind)] + md_parts(body, default_kind), space_after=2)
+            continue
+        add_par(doc, md_parts(line, default_kind), space_after=4)
 
 
 def prompt_doc(path, title, where, notes, text):
@@ -175,6 +268,7 @@ def prompt_doc(path, title, where, notes, text):
         T(doc, '• ' + n, size=10.5, space_after=2)
     legend(doc)
     T(doc, '──────── הפרומפט מתחיל כאן ────────', size=10, color='667085', space_after=8)
+    T(doc, 'בקובץ הזה הפרומפט מעוצב לקריאה. להעתקה למערכת: התיקייה "טקסט נקי להעתקה".', size=10, color='667085', space_after=8)
     write_prompt(doc, text)
     T(doc, '──────── סוף הפרומפט ────────', size=10, color='667085', space_after=0)
     doc.save(path)
@@ -210,13 +304,13 @@ def build(d, stage):
           'המנחה לא פדגוגי: מדבר רק כשמנסים לשבור את הדמות, או כשהשפה לא מתאימה.',
           'הקובץ כתוב בלשון נקבה למורה. למורה בלשון זכר: להחליף את "בלשון נקבה" ל"בלשון זכר" (מסומן בכחול).',
           'בדוגמאות: לעדכן את שם התלמיד/ה ואת לשון הפנייה (כחול/צהוב).']),
-        ('05 הנחיות משותפות לתלמידים - מעבר ידני', 'shared_manual', 'פרומפט על לכל תלמידי ה־AI',
+        ('05 הנחיות משותפות לתלמידים - מעבר ידני', 'shared_manual', 'פרומפט על לכל תלמידי AI',
          ['מתאים לשיעור עם מעבר שלבים ידני. לאוטומטי: קובץ 06.',
           common_fill,
           'שורת המורה (כחול): לבחור "המורה מלמדת… לשון נקבה" או "המורה מלמד… לשון זכר".',
           'שלבי השיעור: שורה לכל שלב, "1. שם השלב". היעדים: טבלה כמו במנהל השיח.',
           'המקטע "עוד לא למדנו" לא חובה. אם אין, מוחקים אותו.']),
-        ('06 הנחיות משותפות לתלמידים - מעבר אוטומטי', 'shared_auto', 'פרומפט על לכל תלמידי ה־AI',
+        ('06 הנחיות משותפות לתלמידים - מעבר אוטומטי', 'shared_auto', 'פרומפט על לכל תלמידי AI',
          ['מתאים לשיעור עם מעבר שלבים אוטומטי.', common_fill]),
         ('07 דמות - תבנית ריקה בלשון נקבה', 'character_f', 'פרומפט הדמות (אחד לכל תלמיד/ה)',
          ['לבניית דמות חדשה. לדמות מהמאגר: התיקייה "דמויות מהמאגר".',
@@ -267,8 +361,8 @@ def instructions(d, path):
     rows = [
         ('פרומפט מנהל שיח', 'קובץ 02 (מעבר שלבים ידני) או 03 (אוטומטי)'),
         ('פרומפט מנחה', 'קובץ 04'),
-        ('פרומפט על לכל תלמידי ה־AI', 'קובץ 05 (ידני) או 06 (אוטומטי)'),
-        ('פרומפט דמות (אחד לכל תלמיד/ה)', 'דמות מהמאגר, או תבנית 07 / 08'),
+        ('פרומפט על לכל תלמידי AI', 'קובץ 05 (ידני) או 06 (אוטומטי)'),
+        ('פרומפט דמות (אחד לכל תלמיד/ה)', 'דמות מהמאגר, או תבנית 07 או 08'),
     ]
     for a, b in rows:
         add_par(doc, [('• ' + a + ': ', None), (b, None)])
@@ -291,10 +385,10 @@ def instructions(d, path):
     fields = [
         ('⟦שם התרגיל⟧', 'למשל: הפקעה ופיצוי 1, סעיף 3'),
         ('⟦כיתה ורמה⟧', 'למשל: כיתה ט׳, הקבצה א׳'),
-        ('⟦מה כבר למדו⟧', 'שורה לכל דבר, כל שורה מתחילה ב"- "'),
+        ('⟦מה כבר למדו⟧', 'שורה לכל דבר, וכל שורה מתחילה במקף'),
         ('⟦טקסט המשימה⟧', 'המשימה כפי שהתלמידים רואים אותה, כולל השאלה'),
-        ('⟦שלבי השיעור⟧', 'שורה לכל שלב: "1. שם השלב"'),
-        ('⟦שלבים ויעדים⟧', 'טבלה: "| 1. שם השלב | מה התלמיד/ה אומר/ת בעצמו/ה |"'),
+        ('⟦שלבי השיעור⟧', 'שורה לכל שלב: מספר, נקודה ושם השלב'),
+        ('⟦שלבים ויעדים⟧', 'טבלה עם שתי עמודות: שם השלב, ומה התלמיד/ה אומר/ת בעצמו/ה'),
         ('⟦שם⟧ / ⟦שם התלמיד/ה⟧', 'שם הדמות'),
         ('⟦הטעות של הדמות⟧', 'בגוף שלישי: מה הדמות עשתה ומה היא חושבת. בלי מה יתקן את זה'),
         ('⟦הרעיון המתמטי המרכזי⟧, ⟦הפתרון⟧', 'רק במעבר אוטומטי ובפרומפט העזר'),
@@ -328,7 +422,9 @@ def instructions(d, path):
 def main():
     with io.open(os.path.join(OUT, 'prompts.json'), encoding='utf-8') as f:
         d = json.load(f)
-    stage = os.path.join(OUT, 'פרומפטים קבועים - סימולציית הוראה')
+    import tempfile
+    work = tempfile.mkdtemp(prefix='simzip-')
+    stage = os.path.join(work, 'פרומפטים קבועים - סימולציית הוראה')
     if os.path.isdir(stage):
         shutil.rmtree(stage)
     build(d, stage)
@@ -339,7 +435,7 @@ def main():
         for base, _, names in os.walk(stage):
             for n in sorted(names):
                 full = os.path.join(base, n)
-                z.write(full, os.path.relpath(full, OUT))
+                z.write(full, os.path.relpath(full, work))
     print(zpath, os.path.getsize(zpath))
 
 
